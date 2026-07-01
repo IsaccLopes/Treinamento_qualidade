@@ -1,25 +1,41 @@
-# Treinamentos da Qualidade - Visual ADM V3
+# Sistema de Treinamentos - Qualidade | V2 Visual
 
-Versão visual corrigida para ficar no estilo do mockup: topo azul ADM, navegação limpa, cards premium e elementos de qualidade/laboratório.
+Versão visual redesenhada para ficar mais próxima do painel premium de Qualidade/Laboratório:
 
-## Subir no GitHub
-Substitua na raiz do repositório:
+- Cabeçalho azul ADM com logo em imagem (`adm-logo.png`).
+- Navegação mais limpa e com ícones.
+- Cards com visual mais corporativo.
+- KPIs e dashboards com estilo mais claro.
+- Elementos visuais de laboratório/qualidade no fundo e no painel.
+- Mantém o mesmo Supabase e as mesmas tabelas da versão anterior.
 
-- index.html
-- style.css
-- app.js
-- README.md
-- manifest.json
-- service-worker.js
-- icon-192.png
-- icon-512.png
-- adm-logo.png
+## Arquivos para subir no GitHub
 
-Não precisa rodar SQL novo.
+Suba/substitua na raiz do repositório:
 
-## Depois do commit
-1. Esperar o GitHub Pages terminar.
-2. Apertar Ctrl + F5 no navegador.
-3. Se ainda aparecer antigo: DevTools > Application > Service Workers > Unregister e limpar dados do site.
+- `index.html`
+- `style.css`
+- `app.js`
+- `README.md`
+- `manifest.json`
+- `service-worker.js`
+- `icon-192.png`
+- `icon-512.png`
+- `adm-logo.png`
 
-Se o topo não ficar azul escuro, o style.css novo não carregou ou o service worker antigo ainda está segurando cache.
+## Não subir no GitHub público
+
+Não suba a pasta `supabase/import_csv` se ela tiver dados reais.
+
+## Supabase
+
+Não precisa rodar SQL novo apenas para essa mudança visual.
+
+Se for um projeto Supabase novo, edite no `app.js`:
+
+```js
+const SUPABASE_URL = "SUA_URL";
+const SUPABASE_PUBLISHABLE_KEY = "SUA_KEY";
+```
+
+Depois dê commit e force atualização no navegador com `Ctrl + F5`.

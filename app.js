@@ -1,5 +1,5 @@
-const SUPABASE_URL = "https://seyqjxnwmlnjxxkpwpbi.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_G0gXV44jcAoCC1eQVX9Vwg_GJBLZSxv";
+const SUPABASE_URL = "COLE_AQUI_A_URL_DO_SUPABASE_QUALIDADE";
+const SUPABASE_PUBLISHABLE_KEY = "COLE_AQUI_A_PUBLISHABLE_KEY_DO_SUPABASE_QUALIDADE";
 const STATUS_LABEL = {
   em_dia: "Em dia",
   vencendo: "Vencendo",
@@ -17,6 +17,7 @@ let perfil = null;
 let db = { colaboradores: [], treinamentos: [], matriz: [], agenda: [], usuarios: [], auditoria: [], historico: [], grupos: [], grupoItens: [] };
 let statusAtivo = "vencido";
 let selecionadosAtualizacao = new Set();
+const uiExpand = { listaAgrupada:false, listaVencendoDias:false, aderenciaTreinamento:false, aderenciaSetor:false, gestorPrioridades:false, gestorTreinamentosCriticos:false, gestorKpiPessoa:false };
 
 const $ = (id) => document.getElementById(id);
 const norm = (v) => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
@@ -399,6 +400,19 @@ function renderBotaoTexto(id, valor){
   if(el) el.textContent = valor;
 }
 
+function renderLimitedList(items, limit, renderItem, key, emptyHtml){
+  if(!items.length) return emptyHtml;
+  const expandido = !!uiExpand[key];
+  const visiveis = expandido ? items : items.slice(0, limit);
+  const conteudo = visiveis.map(renderItem).join("");
+  if(items.length <= limit) return conteudo;
+  return conteudo + `<button class="btn secondary btn-ver-mais" type="button" onclick="toggleListExpansion('${key}')">${expandido ? 'Ver menos' : `Ver mais (${items.length - limit})`}</button>`;
+}
+window.toggleListExpansion = (key) => {
+  uiExpand[key] = !uiExpand[key];
+  renderDashboard();
+};
+
 function setStatusDashboard(status){
   statusAtivo = status;
   renderDashboard();
@@ -466,21 +480,27 @@ function renderDashboard(){
   else if(statusAtivo === "prazo90") grupos = agruparPorColaborador(linhas90, "todos");
   else if(statusAtivo === "devendo") grupos = gDevendo;
   else if(statusAtivo === "ok") grupos = ok.map(c => ({colaborador:c, itens:linhas.filter(l=>l.colaborador.id===c.id && isValido(l))}));
-  else grupos = agruparPorColaborador(linhas,"todos");
+  else grupos = agruparPorColaborador(linhas, "todos");
 
   const titulos = {
     vencido:"Colaboradores com treinamentos vencidos",
-    vencendo:"Colaboradores com treinamentos vencendo em até 30 dias",
-    prazo30:"Colaboradores com treinamentos vencendo em até 30 dias",
-    prazo60:"Colaboradores com treinamentos vencendo de 31 a 60 dias",
-    prazo90:"Colaboradores com treinamentos vencendo de 61 a 90 dias",
+    vencendo:"Colaboradores vencendo em até 30 dias",
+    prazo30:"Colaboradores vencendo em até 30 dias",
+    prazo60:"Colaboradores vencendo de 31 a 60 dias",
+    prazo90:"Colaboradores vencendo de 61 a 90 dias",
     devendo:"Colaboradores devendo treinamentos",
     ok:"Colaboradores sem pendência crítica",
     todos:"Todos os colaboradores"
   };
   $("listaTitulo").textContent = titulos[statusAtivo] || titulos.vencido;
   $("listaResumo").textContent = `${grupos.length} pessoa(s)`;
-  $("listaAgrupada").innerHTML = grupos.map(renderGrupo).join("") || `<div class="empty">Nenhum colaborador encontrado para esse filtro.</div>`;
+  $("listaAgrupada").innerHTML = renderLimitedList(
+    grupos,
+    5,
+    renderGrupo,
+    "listaAgrupada",
+    `<div class="empty">Nenhum colaborador encontrado para esse filtro.</div>`
+  );
 
   renderDashboardVisual(linhas);
   renderVencendoDias(linhas);
@@ -602,13 +622,18 @@ function renderGestorGraficos(linhas){
     });
     const arr = [...map.values()].sort((a,b)=>b.total-a.total || b.vencidos-a.vencidos || a.colaborador.nome.localeCompare(b.colaborador.nome)).slice(0,10);
     const maior = Math.max(...arr.map(x => x.total), 1);
-    boxPessoa.innerHTML = arr.map(x => `
+    boxPessoa.innerHTML = renderLimitedList(
+      arr,
+      6,
+      x => `
       <div class="gestor-person-bar">
         <div class="gestor-person-info"><strong>${escapeHtml(x.colaborador.nome)}</strong><small>${escapeHtml(x.colaborador.setor || "")} • ${x.vencidos} vencido(s) • ${x.devendo} devendo • ${x.prox} próximos</small></div>
         <div class="gestor-person-track"><span style="width:${Math.max(5, Math.round((x.total/maior)*100))}%"></span></div>
         <b>${x.total}</b>
-      </div>
-    `).join("") || `<div class="empty small-empty">Sem pendências por pessoa.</div>`;
+      </div>`,
+      "gestorKpiPessoa",
+      `<div class="empty small-empty">Sem pendências por pessoa.</div>`
+    );
   }
 }
 
@@ -651,14 +676,19 @@ function renderGestorOverview(linhas, todasLinhas){
         const pa = a.status === "vencido" ? 0 : a.status === "devendo" ? 1 : 2;
         const pb = b.status === "vencido" ? 0 : b.status === "devendo" ? 1 : 2;
         return pa - pb || (a.dias ?? 9999) - (b.dias ?? 9999) || a.colaborador.nome.localeCompare(b.colaborador.nome);
-      })
-      .slice(0,12);
-    boxPrioridades.innerHTML = prioridade.map(l => `
+      });
+    boxPrioridades.innerHTML = renderLimitedList(
+      prioridade,
+      5,
+      l => `
       <div class="alert-item compact-alert">
         <span class="status ${l.status}">${STATUS_LABEL[l.status] || l.status}</span>
         <strong>${escapeHtml(l.colaborador.nome)}</strong>
         <small>${escapeHtml(l.treinamento.nome)} • ${escapeHtml(l.colaborador.setor || "")} • ${l.detalhe || ""}</small>
-      </div>`).join("") || `<div class="empty small-empty">Sem pendência crítica para a(s) área(s).</div>`;
+      </div>`,
+      "gestorPrioridades",
+      `<div class="empty small-empty">Sem pendência crítica para a(s) área(s).</div>`
+    );
   }
 
   if(boxTreinos){
@@ -672,12 +702,18 @@ function renderGestorOverview(linhas, todasLinhas){
       if(l.status === "devendo") item.devendo++;
       if(l.faixa === "30") item.dias30++;
     });
-    const arr = [...map.values()].sort((a,b)=>b.total-a.total).slice(0,8);
-    boxTreinos.innerHTML = arr.map(x => `
+    const arr = [...map.values()].sort((a,b)=>b.total-a.total);
+    boxTreinos.innerHTML = renderLimitedList(
+      arr,
+      5,
+      x => `
       <div class="adherence-row">
         <div><strong>${escapeHtml(x.nome)}</strong><small>${x.vencidos} vencido(s) • ${x.devendo} devendo • ${x.dias30} até 30 dias</small></div>
         <span class="chip">${x.total}</span>
-      </div>`).join("") || `<div class="empty">Sem treinamentos críticos no momento.</div>`;
+      </div>`,
+      "gestorTreinamentosCriticos",
+      `<div class="empty">Sem treinamentos críticos no momento.</div>`
+    );
   }
 
   if(boxPlano){
@@ -694,25 +730,36 @@ function renderGestorOverview(linhas, todasLinhas){
 }
 
 function renderVencendoDias(linhas){
+  const box = $("listaVencendoDias");
+  if(!box) return;
   const v = linhas
     .filter(l => isAplicavel(l) && typeof l.dias === "number" && l.dias >= 0 && l.dias <= 90)
     .sort((a,b)=>a.dias-b.dias || a.colaborador.nome.localeCompare(b.colaborador.nome));
 
-  const faixas = [
-    {label:"Até 30 dias", cls:"vencendo", itens:v.filter(l=>l.dias<=30)},
-    {label:"31 a 60 dias", cls:"solicitado", itens:v.filter(l=>l.dias>30 && l.dias<=60)},
-    {label:"61 a 90 dias", cls:"ok", itens:v.filter(l=>l.dias>60 && l.dias<=90)}
-  ];
+  const faixas = {
+    prazo30:{label:"Até 30 dias", cls:"vencendo", itens:v.filter(l=>l.dias<=30)},
+    vencendo:{label:"Até 30 dias", cls:"vencendo", itens:v.filter(l=>l.dias<=30)},
+    prazo60:{label:"31 a 60 dias", cls:"solicitado", itens:v.filter(l=>l.dias>30 && l.dias<=60)},
+    prazo90:{label:"61 a 90 dias", cls:"ok", itens:v.filter(l=>l.dias>60 && l.dias<=90)}
+  };
 
-  $("listaVencendoDias").innerHTML = faixas.map(f => `
-    <div class="faixa-vencimento">
-      <div class="card-head compact"><h4>${f.label}</h4><span class="chip">${f.itens.length}</span></div>
-      ${f.itens.slice(0,30).map(l => `<div class="alert-item compact-alert">
-        <span class="status ${f.cls}">${l.dias === 0 ? "vence hoje" : `faltam ${l.dias} dias`}</span>
-        <strong>${escapeHtml(l.colaborador.nome)}</strong>
-        <small>${escapeHtml(l.treinamento.nome)} • ${escapeHtml(l.colaborador.setor || "")} • validade ${brDate(l.validade)}</small>
-      </div>`).join("") || `<div class="empty small-empty">Nenhum item nessa faixa.</div>`}
-    </div>`).join("");
+  const atual = faixas[statusAtivo];
+  if(!atual){
+    box.innerHTML = `<div class="empty small-empty">Use os botões <b>30 / 60 / 90</b> acima para abrir somente a faixa desejada e evitar rolagem desnecessária.</div>`;
+    return;
+  }
+
+  box.innerHTML = renderLimitedList(
+    atual.itens,
+    6,
+    l => `<div class="alert-item compact-alert">
+      <span class="status ${atual.cls}">${l.dias === 0 ? "vence hoje" : `faltam ${l.dias} dias`}</span>
+      <strong>${escapeHtml(l.colaborador.nome)}</strong>
+      <small>${escapeHtml(l.treinamento.nome)} • ${escapeHtml(l.colaborador.setor || "")} • validade ${brDate(l.validade)}</small>
+    </div>`,
+    "listaVencendoDias",
+    `<div class="empty small-empty">Nenhum item nessa faixa.</div>`
+  );
 }
 
 function renderAderenciaTreinamento(linhas){
@@ -727,11 +774,17 @@ function renderAderenciaTreinamento(linhas){
     if(l.status === "vencido") item.vencidos++;
     if(l.status === "devendo") item.devendo++;
   });
-  const arr = [...map.values()].sort((a,b)=>(a.validos/a.total)-(b.validos/b.total) || b.total-a.total).slice(0,40);
-  $("aderenciaTreinamento").innerHTML = arr.map(x => `<div class="adherence-row">
-    <div><strong>${escapeHtml(x.nome)}</strong><small>${x.validos}/${x.total} em dia • ${x.vencidos} vencido(s) • ${x.devendo} devendo</small></div>
-    <span class="chip">${pct(x.validos,x.total)}</span>
-  </div>`).join("") || `<div class="empty">Sem dados para o filtro.</div>`;
+  const arr = [...map.values()].sort((a,b)=>(a.validos/a.total)-(b.validos/b.total) || b.total-a.total);
+  $("aderenciaTreinamento").innerHTML = renderLimitedList(
+    arr,
+    5,
+    x => `<div class="adherence-row">
+      <div><strong>${escapeHtml(x.nome)}</strong><small>${x.validos}/${x.total} em dia • ${x.vencidos} vencido(s) • ${x.devendo} devendo</small></div>
+      <span class="chip">${pct(x.validos,x.total)}</span>
+    </div>`,
+    "aderenciaTreinamento",
+    `<div class="empty">Sem dados para o filtro.</div>`
+  );
 }
 
 function renderAderenciaSetor(linhas){
@@ -747,10 +800,16 @@ function renderAderenciaSetor(linhas){
     if(l.status === "devendo") item.devendo++;
   });
   const arr = [...map.values()].sort((a,b)=>(a.validos/a.total)-(b.validos/b.total) || a.nome.localeCompare(b.nome));
-  $("aderenciaSetor").innerHTML = arr.map(x => `<div class="adherence-row">
-    <div><strong>${escapeHtml(x.nome)}</strong><small>${x.validos}/${x.total} em dia • ${x.vencidos} vencido(s) • ${x.devendo} devendo</small></div>
-    <span class="chip">${pct(x.validos,x.total)}</span>
-  </div>`).join("") || `<div class="empty">Sem dados para o filtro.</div>`;
+  $("aderenciaSetor").innerHTML = renderLimitedList(
+    arr,
+    5,
+    x => `<div class="adherence-row">
+      <div><strong>${escapeHtml(x.nome)}</strong><small>${x.validos}/${x.total} em dia • ${x.vencidos} vencido(s) • ${x.devendo} devendo</small></div>
+      <span class="chip">${pct(x.validos,x.total)}</span>
+    </div>`,
+    "aderenciaSetor",
+    `<div class="empty">Sem dados para o filtro.</div>`
+  );
 }
 
 function consultaInterna(){

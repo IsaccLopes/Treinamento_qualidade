@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ADM | Treinamentos da Qualidade</title>
-  <link rel="stylesheet" href="style.css?v=82" />
+  <link rel="stylesheet" href="style.css?v=21" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0f2b57" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -12,14 +12,14 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script defer src="app.js?v=82"></script>
+  <script defer src="app.js?v=21"></script>
 </head>
 <body>
   <div id="loading" class="loading">Carregando sistema...</div>
 
   <section id="loginView" class="login-view hidden">
     <div class="login-card">
-      <div class="adm-logo adm-logo-real"><img src="adm-logo.png" alt="ADM" /></div>
+      <div class="adm-wordmark" aria-label="ADM">ADM</div>
       <h1>Treinamentos da Qualidade</h1>
       <p>Acesso restrito a usuários autorizados.</p>
       <form id="loginForm" class="form-stack">
@@ -40,7 +40,7 @@
   <section id="publicView" class="public-view hidden">
     <div class="public-card">
       <div class="top-public">
-        <div class="adm-logo adm-logo-real"><img src="adm-logo.png" alt="ADM" /></div>
+        <div class="adm-wordmark" aria-label="ADM">ADM</div>
         <span class="badge neutral">Somente leitura</span>
       </div>
       <h1 id="publicTitle">Consulta de treinamentos</h1>
@@ -52,17 +52,13 @@
   <section id="appView" class="app hidden">
     <header class="topbar">
       <div class="brand">
-        <div class="adm-logo adm-logo-real"><img src="adm-logo.png" alt="ADM" /></div>
+        <div class="adm-wordmark" aria-label="ADM">ADM</div>
         <div>
-          <h1>Sistema de Treinamentos - Qualidade</h1>
-          <p>Base protegida no Supabase • Gestão de evidências, QR Code e vencimentos</p>
+          <h1>Treinamentos da Qualidade</h1>
+          <p>Base protegida no Supabase • GitHub contém somente código</p>
         </div>
       </div>
-      <div class="topbar-tools" aria-hidden="true">
-        <span title="Alertas">🔔</span>
-        <span title="Ajuda">?</span>
-      </div>
-      <div class="userbar">
+            <div class="userbar">
         <div>
           <strong id="userName">Usuário</strong>
           <span id="userRole">perfil</span>
@@ -249,7 +245,7 @@
           </article>
         </div>
 
-        <article class="card quality-hero-panel">
+        <article class="card quality-hero-panel hidden">
           <div>
             <span class="eyebrow">Qualidade e laboratório</span>
             <h3>Qualidade se constrói com conhecimento.</h3>
