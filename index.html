@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ADM | Treinamentos da Qualidade</title>
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=82" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0f2b57" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -12,14 +12,14 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script defer src="app.js?v=13"></script>
+  <script defer src="app.js?v=82"></script>
 </head>
 <body>
   <div id="loading" class="loading">Carregando sistema...</div>
 
   <section id="loginView" class="login-view hidden">
     <div class="login-card">
-      <div class="adm-logo"><span class="leaf"></span><strong>ADM</strong></div>
+      <div class="adm-logo adm-logo-real"><img src="adm-logo.png" alt="ADM" /></div>
       <h1>Treinamentos da Qualidade</h1>
       <p>Acesso restrito a usuários autorizados.</p>
       <form id="loginForm" class="form-stack">
@@ -40,7 +40,7 @@
   <section id="publicView" class="public-view hidden">
     <div class="public-card">
       <div class="top-public">
-        <div class="adm-logo"><span class="leaf"></span><strong>ADM</strong></div>
+        <div class="adm-logo adm-logo-real"><img src="adm-logo.png" alt="ADM" /></div>
         <span class="badge neutral">Somente leitura</span>
       </div>
       <h1 id="publicTitle">Consulta de treinamentos</h1>
@@ -52,11 +52,15 @@
   <section id="appView" class="app hidden">
     <header class="topbar">
       <div class="brand">
-        <div class="adm-logo"><span class="leaf"></span><strong>ADM</strong></div>
+        <div class="adm-logo adm-logo-real"><img src="adm-logo.png" alt="ADM" /></div>
         <div>
-          <h1>Treinamentos da Qualidade</h1>
-          <p>Base protegida no Supabase • GitHub contém somente código</p>
+          <h1>Sistema de Treinamentos - Qualidade</h1>
+          <p>Base protegida no Supabase • Gestão de evidências, QR Code e vencimentos</p>
         </div>
+      </div>
+      <div class="topbar-tools" aria-hidden="true">
+        <span title="Alertas">🔔</span>
+        <span title="Ajuda">?</span>
       </div>
       <div class="userbar">
         <div>
@@ -83,7 +87,7 @@
         <div class="title-row">
           <div>
             <span class="eyebrow">Gestão de treinamentos</span>
-            <h2>Painel resumido por colaborador</h2>
+            <h2>Painel de Treinamentos - Qualidade</h2>
           </div>
           <div class="row-mini title-actions"><button id="btnReload" class="btn secondary">Atualizar dados</button><button id="btnExportExcel" class="btn">Exportar Excel</button></div>
         </div>
@@ -228,7 +232,7 @@
           </article>
         </div>
 
-        <div class="grid-two mt">
+        <div class="grid-two mt quality-last-row">
           <article class="card">
             <div class="card-head">
               <h3>Aderência por treinamento</h3>
@@ -244,6 +248,19 @@
             <div id="aderenciaSetor" class="adherence-list"></div>
           </article>
         </div>
+
+        <article class="card quality-hero-panel">
+          <div>
+            <span class="eyebrow">Qualidade e laboratório</span>
+            <h3>Qualidade se constrói com conhecimento.</h3>
+            <p>Controle treinamentos, evidências, reciclagens e vencimentos em uma tela clara para tomada de decisão.</p>
+          </div>
+          <div class="lab-illustration" aria-hidden="true">
+            <span class="lab-microscope">🔬</span>
+            <span class="lab-flask">🧪</span>
+            <span class="lab-check">✓</span>
+          </div>
+        </article>
       </section>
 
       <section id="consultaPanel" class="panel-view hidden">

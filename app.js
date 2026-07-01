@@ -1,5 +1,5 @@
-const SUPABASE_URL = "https://seyqjxnwmlnjxxkpwpbi.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_G0gXV44jcAoCC1eQVX9Vwg_GJBLZSxv";
+const SUPABASE_URL = "COLE_AQUI_A_URL_DO_SUPABASE_QUALIDADE";
+const SUPABASE_PUBLISHABLE_KEY = "COLE_AQUI_A_PUBLISHABLE_KEY_DO_SUPABASE_QUALIDADE";
 const STATUS_LABEL = {
   em_dia: "Em dia",
   vencendo: "Vencendo",
@@ -104,7 +104,7 @@ function aplicarTelaPorPerfil(){
   if(exportBtn) exportBtn.classList.toggle("hidden", gestor);
 
   const title = document.querySelector("#dashboardPanel .title-row h2");
-  if(title) title.textContent = gestor ? `Painel do gestor - ${areaGestorLabel()}` : "Painel resumido por colaborador";
+  if(title) title.textContent = gestor ? `Painel do gestor - ${areaGestorLabel()}` : "Painel de Treinamentos - Qualidade";
 
   const aderenciaFiltroSmall = document.querySelector("#kpiAderenciaArea")?.parentElement?.querySelector("small");
   if(aderenciaFiltroSmall) aderenciaFiltroSmall.textContent = gestor ? "minha(s) área(s)" : "setor/treinamento selecionado";
