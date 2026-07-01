@@ -1,5 +1,5 @@
-const SUPABASE_URL = "https://seyqjxnwmlnjxxkpwpbi.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_G0gXV44jcAoCC1eQVX9Vwg_GJBLZSxv";
+const SUPABASE_URL = "COLE_AQUI_A_URL_DO_SUPABASE_QUALIDADE";
+const SUPABASE_PUBLISHABLE_KEY = "COLE_AQUI_A_PUBLISHABLE_KEY_DO_SUPABASE_QUALIDADE";
 const STATUS_LABEL = {
   em_dia: "Em dia",
   vencendo: "Vencendo",
