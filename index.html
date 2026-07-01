@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADM | Treinamentos da Qualidade</title>
+  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f2b57" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="app.js?v=13"></script>
+</head>
+<body>
+  <div id="loading" class="loading">Carregando sistema...</div>
+
+  <section id="loginView" class="login-view hidden">
+    <div class="login-card">
+      <div class="adm-logo"><span class="leaf"></span><strong>ADM</strong></div>
+      <h1>Treinamentos da Qualidade</h1>
+      <p>Acesso restrito a usuários autorizados.</p>
+      <form id="loginForm" class="form-stack">
+        <label>
+          <span>E-mail</span>
+          <input id="loginEmail" type="email" autocomplete="username" placeholder="seu.email@empresa.com" required />
+        </label>
+        <label>
+          <span>Senha</span>
+          <input id="loginSenha" type="password" autocomplete="current-password" required />
+        </label>
+        <button type="submit">Entrar</button>
+      </form>
+      <div class="security-note">Dados protegidos. Não existe base de colaboradores no GitHub.</div>
+    </div>
+  </section>
+
+  <section id="publicView" class="public-view hidden">
+    <div class="public-card">
+      <div class="top-public">
+        <div class="adm-logo"><span class="leaf"></span><strong>ADM</strong></div>
+        <span class="badge neutral">Somente leitura</span>
+      </div>
+      <h1 id="publicTitle">Consulta de treinamentos</h1>
+      <p id="publicSubtitle">Visualização liberada apenas pelo QR Code do colaborador.</p>
+      <div id="publicContent" class="result-box"></div>
+    </div>
+  </section>
+
+  <section id="appView" class="app hidden">
+    <header class="topbar">
+      <div class="brand">
+        <div class="adm-logo"><span class="leaf"></span><strong>ADM</strong></div>
+        <div>
+          <h1>Treinamentos da Qualidade</h1>
+          <p>Base protegida no Supabase • GitHub contém somente código</p>
+        </div>
+      </div>
+      <div class="userbar">
+        <div>
+          <strong id="userName">Usuário</strong>
+          <span id="userRole">perfil</span>
+        </div>
+        <button id="btnSair" class="btn secondary">Sair</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-view="dashboardPanel">Painel</button>
+      <button class="tab" data-view="consultaPanel">Consulta</button>
+      <button class="tab gestor-allowed" data-view="qrPanel">QR Code</button>
+      <button class="tab staff-only" data-view="atualizarPanel">Atualizar</button>
+      <button class="tab staff-only" data-view="basePanel">Base</button>
+      <button class="tab staff-only" data-view="agendaPanel">Agenda</button>
+      <button class="tab manager-only hidden" data-view="acessosPanel">Acessos</button>
+      <button class="tab staff-only" data-view="auditoriaPanel">Auditoria</button>
+    </nav>
+
+    <main class="container">
+      <section id="dashboardPanel" class="panel-view">
+        <div class="title-row">
+          <div>
+            <span class="eyebrow">Gestão de treinamentos</span>
+            <h2>Painel resumido por colaborador</h2>
+          </div>
+          <div class="row-mini title-actions"><button id="btnReload" class="btn secondary">Atualizar dados</button><button id="btnExportExcel" class="btn">Exportar Excel</button></div>
+        </div>
+
+        <div id="gestorBanner" class="gestor-banner hidden">
+          <strong>Portal do Gestor</strong>
+          <span>Você está visualizando somente os colaboradores da sua área.</span>
+        </div>
+
+        <div id="gestorOverview" class="gestor-overview hidden">
+          <article class="card gestor-action-card">
+            <div class="card-head">
+              <h3>Visão rápida da área</h3>
+              <span class="chip">somente acompanhamento</span>
+            </div>
+            <div id="gestorResumoRapido" class="gestor-resumo-grid"></div>
+          </article>
+
+          <article class="card gestor-action-card">
+            <div class="card-head">
+              <h3>Prioridade para cobrar</h3>
+              <span class="chip">gestor</span>
+            </div>
+            <div id="gestorPrioridades" class="gestor-prioridades"></div>
+          </article>
+
+          <article class="card gestor-action-card">
+            <div class="card-head">
+              <h3>Treinamentos críticos</h3>
+              <span class="chip">maiores pendências</span>
+            </div>
+            <div id="gestorTreinamentosCriticos" class="adherence-list"></div>
+          </article>
+
+          <article class="card gestor-action-card">
+            <div class="card-head">
+              <h3>KPI por semestre</h3>
+              <span class="chip">vencimentos</span>
+            </div>
+            <div id="gestorKpiSemestre" class="gestor-chart-columns"></div>
+          </article>
+
+          <article class="card gestor-action-card gestor-wide-card">
+            <div class="card-head">
+              <h3>Pendências por pessoa</h3>
+              <span class="chip">top críticos</span>
+            </div>
+            <div id="gestorKpiPessoa" class="gestor-chart-horizontal"></div>
+          </article>
+
+          <article class="card gestor-action-card">
+            <div class="card-head">
+              <h3>Próximas ações</h3>
+              <span class="chip">sem edição</span>
+            </div>
+            <div id="gestorPlanoAcao" class="charge-box"></div>
+          </article>
+        </div>
+
+        <div id="dashboardFilters" class="filters card">
+          <label><span>Colaborador / matrícula</span><input id="dashFiltroTexto" type="search" placeholder="Buscar nome ou matrícula" /></label>
+          <label><span>Setor</span><select id="dashFiltroSetor"><option value="">Todos</option></select></label>
+          <label><span>Treinamento</span><select id="dashFiltroTreinamento"><option value="">Todos</option></select></label>
+          <button id="btnLimparFiltros" class="btn secondary">Limpar filtros</button>
+        </div>
+
+        <div class="kpi-grid kpi-grid-7">
+          <button class="kpi active" data-status="vencido"><span>Pessoas com vencidos</span><strong id="kpiVencidos">0</strong><small>agrupado por colaborador</small></button>
+          <button class="kpi warn" data-status="vencendo"><span>Pessoas vencendo</span><strong id="kpiVencendo">0</strong><small>próximos 30 dias</small></button>
+          <button class="kpi muted" data-status="devendo"><span>Pessoas devendo</span><strong id="kpiDevendo">0</strong><small>sem registro</small></button>
+          <button class="kpi success" data-status="ok"><span>Pessoas sem pendência</span><strong id="kpiOk">0</strong><small>sem vencido/vencendo/devendo</small></button>
+          <button class="kpi info" data-status="todos"><span>Colaboradores ativos</span><strong id="kpiColaboradores">0</strong><small>base atual</small></button>
+          <div class="kpi percent"><span>Aderência geral</span><strong id="kpiAderenciaGeral">0%</strong><small>site inteiro</small></div>
+          <div class="kpi percent"><span>Aderência no filtro</span><strong id="kpiAderenciaArea">0%</strong><small>setor/treinamento selecionado</small></div>
+        </div>
+
+        <div class="card quick-dashboard">
+          <div class="card-head">
+            <h3>Filtros rápidos de cobrança</h3>
+            <span class="chip">30 / 60 / 90</span>
+          </div>
+          <div class="quick-filter-row">
+            <button class="quick-filter active" data-status="vencido">
+              <span>Vencidos</span>
+              <strong id="qtdQuickVencidos">0</strong>
+              <small>já passaram da validade</small>
+            </button>
+            <button class="quick-filter" data-status="prazo30">
+              <span>Até 30 dias</span>
+              <strong id="qtdQuick30">0</strong>
+              <small>cobrança imediata</small>
+            </button>
+            <button class="quick-filter" data-status="prazo60">
+              <span>31 a 60 dias</span>
+              <strong id="qtdQuick60">0</strong>
+              <small>planejar agenda</small>
+            </button>
+            <button class="quick-filter" data-status="prazo90">
+              <span>61 a 90 dias</span>
+              <strong id="qtdQuick90">0</strong>
+              <small>prevenir atraso</small>
+            </button>
+            <button class="quick-filter" data-status="devendo">
+              <span>Devendo</span>
+              <strong id="qtdQuickDevendo">0</strong>
+              <small>sem registro</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-two mt dashboard-extra">
+          <article class="card">
+            <div class="card-head">
+              <h3>Dashboard de vencimentos</h3>
+              <span class="chip">clique para filtrar</span>
+            </div>
+            <div id="dashboardVisual" class="dash-bars"></div>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <h3>Resumo para cobrança da área</h3>
+              <span class="chip">ação</span>
+            </div>
+            <div id="dashboardCobranca" class="charge-box"></div>
+          </article>
+        </div>
+
+        <div class="grid-main">
+          <article class="card">
+            <div class="card-head">
+              <h3 id="listaTitulo">Colaboradores com treinamentos vencidos</h3>
+              <span id="listaResumo" class="chip">0 pessoas</span>
+            </div>
+            <div id="listaAgrupada" class="group-list"></div>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <h3>Vencimentos 30 / 60 / 90 dias</h3>
+              <span class="chip">prioridade</span>
+            </div>
+            <div id="listaVencendoDias" class="alert-list"></div>
+          </article>
+        </div>
+
+        <div class="grid-two mt">
+          <article class="card">
+            <div class="card-head">
+              <h3>Aderência por treinamento</h3>
+              <span class="chip">% por curso</span>
+            </div>
+            <div id="aderenciaTreinamento" class="adherence-list"></div>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <h3>Aderência por setor</h3>
+              <span class="chip">% por área</span>
+            </div>
+            <div id="aderenciaSetor" class="adherence-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="consultaPanel" class="panel-view hidden">
+        <div class="title-row"><div><span class="eyebrow">Consulta interna</span><h2>Ficha do colaborador</h2></div></div>
+        <div class="card">
+          <div class="search-row">
+            <input id="consultaBusca" type="search" placeholder="Digite nome ou matrícula" />
+            <button id="btnConsultaBuscar" class="btn">Buscar</button>
+          </div>
+          <div id="consultaResultado" class="result-box empty">Pesquise um colaborador.</div>
+        </div>
+      </section>
+
+      <section id="qrPanel" class="panel-view hidden">
+        <div class="title-row"><div><span class="eyebrow">QR Code</span><h2>Gerar consulta somente leitura</h2></div></div>
+        <div class="grid-two">
+          <div class="card">
+            <label><span>Pesquisar colaborador</span><input id="qrBusca" type="search" placeholder="Nome, matrícula ou setor" /></label>
+            <select id="qrColaborador" size="10" class="select-list"></select>
+            <button id="btnGerarQr" class="btn full">Gerar QR Code</button>
+          </div>
+          <div class="card qr-card">
+            <h3 id="qrNome">Selecione um colaborador</h3>
+            <p id="qrMeta">O link terá token aleatório, não matrícula.</p>
+            <div id="qrcode" class="qrcode"></div>
+            <div id="qrLink" class="copy-box"></div>
+            <button id="btnCopiarQr" class="btn secondary full">Copiar link</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="atualizarPanel" class="panel-view hidden">
+        <div class="title-row"><div><span class="eyebrow">Reciclagem / lançamento</span><h2>Atualizar treinamento para várias pessoas</h2></div></div>
+        <div class="grid-two">
+          <div class="card">
+            <label><span>Pesquisar pessoas</span><input id="updBusca" type="search" placeholder="Nome, matrícula ou setor" /></label>
+            <div class="row-mini">
+              <button id="btnSelecionarTodosVisiveis" class="btn secondary">Selecionar visíveis</button>
+              <button id="btnLimparSelecao" class="btn secondary">Limpar seleção</button>
+            </div>
+            <div id="updListaPessoas" class="check-list"></div>
+          </div>
+          <div class="card">
+            <h3>Dados do treinamento</h3>
+            <label><span>Treinamento</span><select id="updTreinamento"></select></label>
+            <label><span>Tipo de lançamento</span><select id="updOrigem"><option value="reciclagem">Reciclagem</option><option value="integracao">Integração</option><option value="ajuste">Ajuste manual</option></select></label>
+            <label><span>Data realizada</span><input id="updData" type="date" /></label>
+            <label><span>Validade até</span><input id="updValidade" type="date" /></label>
+            <label><span>Anexo</span><input id="updAnexo" type="file" /></label>
+            <label><span>Observação/evidência</span><textarea id="updObs" rows="4" placeholder="Lista de presença, certificado, instrutor..."></textarea></label>
+            <div class="selected-count"><strong id="updQtdSelecionados">0</strong> colaborador(es) selecionado(s)</div>
+            <div id="updSelecionadosBox" class="selected-box empty-small">Nenhum colaborador selecionado.</div>
+            <button id="btnSalvarAtualizacao" class="btn full">Salvar reciclagem</button>
+            <button id="btnMarcarObrigatorio" class="btn secondary full">Aplicar como obrigatório sem data</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="basePanel" class="panel-view hidden">
+        <div class="title-row"><div><span class="eyebrow">Base de dados</span><h2>Colaboradores e treinamentos</h2></div></div>
+        <div class="grid-two">
+          <div class="card">
+            <div class="card-head"><h3>Colaborador</h3><button id="btnNovoColab" class="btn secondary">Novo</button></div>
+            <input id="colabId" type="hidden" />
+            <label><span>Matrícula</span><input id="colabMatricula" type="text" /></label>
+            <label><span>Nome</span><input id="colabNome" type="text" /></label>
+            <label><span>Setor</span><input id="colabSetor" type="text" /></label>
+            <label><span>Função</span><input id="colabFuncao" type="text" /></label>
+            <label><span>Grupo de treinamentos</span><select id="colabGrupo"><option value="">Sem grupo definido</option></select></label>
+            <label class="inline"><input id="colabAtivo" type="checkbox" checked /> <span>Ativo</span></label>
+            <div class="row-mini">
+              <button id="btnSalvarColab" class="btn">Salvar colaborador</button>
+              <button id="btnExcluirColab" class="btn danger">Excluir</button>
+              <button id="btnAplicarGrupoColab" class="btn secondary">Aplicar grupo</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Treinamento</h3><button id="btnNovoTreinamento" class="btn secondary">Novo</button></div>
+            <input id="treId" type="hidden" />
+            <label><span>Nome</span><input id="treNome" type="text" /></label>
+            <label><span>Periodicidade em dias</span><input id="treDias" type="number" min="0" placeholder="365" /></label>
+            <label><span>Setores aplicáveis</span><input id="treSetores" type="text" placeholder="Envase, Manutenção ou TODOS" /></label>
+            <label><span>Anexo padrão do treinamento</span><input id="treAnexo" type="file" /></label>
+            <label class="inline"><input id="treValidadeDireta" type="checkbox" /> <span>Data lançada já é validade direta</span></label>
+            <label class="inline"><input id="treAtivo" type="checkbox" checked /> <span>Treinamento ativo</span></label>
+            <button id="btnSalvarTreinamento" class="btn full">Salvar treinamento</button>
+          </div>
+        </div>
+        
+        <div class="grid-two mt">
+          <div class="card">
+            <div class="card-head"><h3>Grupos de treinamentos</h3><button id="btnLimparGrupo" class="btn secondary">Novo grupo</button></div>
+            <input id="grupoId" type="hidden" />
+            <label><span>Nome do grupo</span><input id="grupoNome" type="text" placeholder="Ex.: Gestão, Operação, Laboratório" /></label>
+            <label><span>Descrição</span><input id="grupoDescricao" type="text" placeholder="Opcional" /></label>
+            <label><span>Buscar treinamentos do grupo</span><input id="grupoBuscaTreinamento" type="search" placeholder="Buscar treinamento" /></label>
+            <div id="grupoTreinamentosLista" class="check-list training-check-list"></div>
+            <button id="btnSalvarGrupo" class="btn full">Salvar grupo de treinamentos</button>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Grupos cadastrados</h3><span class="chip">gestão</span></div>
+            <div id="listaGrupos" class="alert-list"></div>
+          </div>
+        </div>
+
+        <div class="card mt">
+          <div class="card-head"><h3>Lista de treinamentos</h3><input id="treBusca" type="search" placeholder="Buscar treinamento" /></div>
+          <div class="table-wrap"><table><thead><tr><th>ID</th><th>Treinamento</th><th>Periodicidade</th><th>Setores/Grupos</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tbodyTreinamentos"></tbody></table></div>
+        </div>
+
+        <div class="card mt">
+          <div class="card-head"><h3>Lista de colaboradores</h3><input id="baseBusca" type="search" placeholder="Buscar" /></div>
+          <div class="table-wrap"><table><thead><tr><th>Matrícula</th><th>Nome</th><th>Setor</th><th>Função</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tbodyColabs"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="agendaPanel" class="panel-view hidden">
+        <div class="title-row"><div><span class="eyebrow">Agenda</span><h2>Agendamentos</h2></div></div>
+        <div class="grid-two">
+          <div class="card">
+            <label><span>Treinamento/reunião</span><select id="agendaTreinamento"></select></label>
+            <label><span>Data e hora</span><input id="agendaData" type="datetime-local" /></label>
+            <label><span>Setor/público</span><input id="agendaSetor" type="text" /></label>
+            <label><span>Local</span><input id="agendaLocal" type="text" /></label>
+            <label><span>Responsável</span><input id="agendaResp" type="text" /></label>
+            <button id="btnSalvarAgenda" class="btn full">Salvar agendamento</button>
+          </div>
+          <div class="card"><h3>Próximos</h3><div id="agendaLista" class="alert-list"></div></div>
+        </div>
+      </section>
+
+      <section id="acessosPanel" class="panel-view hidden">
+        <div class="title-row"><div><span class="eyebrow">Gerência</span><h2>Acessos do sistema</h2></div></div>
+        <div class="card">
+          <p class="warning">Por segurança, a senha não é criada no GitHub Pages. Crie o usuário em Authentication &gt; Users no Supabase e vincule o UID abaixo.</p>
+          <div class="form-grid">
+            <label><span>Auth User ID</span><input id="accUid" type="text" placeholder="UUID do usuário no Supabase Auth" /></label>
+            <label><span>E-mail / usuário</span><input id="accUsuario" type="email" /></label>
+            <label><span>Nome</span><input id="accNome" type="text" /></label>
+            <label><span>Perfil</span><select id="accPerfil"><option value="tecnico">Técnico</option><option value="gerencia">Gerência</option><option value="gestor">Gestor de área</option></select></label>
+            <label><span>Área(s) do gestor</span><input id="accAreaResponsavel" type="text" placeholder="Ex.: LABORATORIO, RECEBIMENTO, MANUTENÇÃO ELÉTRICA" /></label>
+          </div>
+          <button id="btnSalvarAcesso" class="btn">Salvar acesso</button>
+        </div>
+        <div class="card mt"><h3>Usuários cadastrados</h3><div id="listaAcessos" class="alert-list"></div></div>
+      </section>
+
+      <section id="auditoriaPanel" class="panel-view hidden">
+        <div class="title-row"><div><span class="eyebrow">Rastreabilidade</span><h2>Auditoria</h2></div></div>
+        <div class="card"><div id="auditoriaLista" class="alert-list"></div></div>
+      </section>
+    </main>
+  </section>
+
+
+  <section id="modalVinculo" class="modal hidden">
+    <div class="modal-card">
+      <div class="card-head">
+        <h3>Ajustar treinamento do colaborador</h3>
+        <button id="btnFecharModalVinculo" class="btn secondary">Fechar</button>
+      </div>
+      <input id="modalColabId" type="hidden" />
+      <input id="modalTreId" type="hidden" />
+      <p id="modalTituloVinculo" class="muted-text">Selecione um vínculo.</p>
+      <label><span>Situação</span><select id="modalTipo"><option value="data">Realizado / válido</option><option value="em_branco">Devendo / sem registro</option><option value="nao_aplica">Não se aplica</option><option value="solicitado">Solicitado</option><option value="afastado">Afastado</option><option value="pendente">Pendente</option></select></label>
+      <label><span>Origem do lançamento</span><select id="modalOrigem"><option value="ajuste">Ajuste manual</option><option value="integracao">Integração</option><option value="reciclagem">Reciclagem</option><option value="nao_aplica">Não se aplica</option></select></label>
+      <div class="grid-two compact-grid">
+        <label><span>Data realizada</span><input id="modalData" type="date" /></label>
+        <label><span>Validade até</span><input id="modalValidade" type="date" /></label>
+      </div>
+      <label><span>Anexo do ajuste</span><input id="modalAnexo" type="file" /></label>
+      <label><span>Motivo / observação</span><textarea id="modalObs" rows="4" placeholder="Ex.: Lucas não executa mais LOTO; treinamento deixou de ser aplicável."></textarea></label>
+      <button id="btnSalvarModalVinculo" class="btn full">Salvar ajuste mantendo histórico</button>
+    </div>
+  </section>
+
+  <div id="toast" class="toast hidden"></div>
+</body>
+</html>
